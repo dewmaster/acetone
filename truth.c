@@ -225,15 +225,16 @@ void primeSortAndCompare(){
 */
 void addToPrimes(int *arr, int num){
 	//printf("add to fuckin primes\n");
-	primeSize++;
+	
 	int i, j, count;
+	printf("Prime size is: %d\n", primeSize);
 	if (primeSize == 0){
-		
+		primeSize++;
 		prime = malloc(sizeof(int *));
 		primeOnes = malloc(sizeof(int));
 	}
 	else{
-		
+		primeSize++;
 		prime = realloc((void *)prime,sizeof(int *)*primeSize);
 		primeOnes = realloc((void *)primeOnes,sizeof(int)*primeSize);
 	}	
@@ -624,6 +625,7 @@ void mccluskey(int size, int * imps){
 
 	//Parse answer and print result;
 	printf("The result is:\n");
+
 	for(i = 0; i < ePrimeCount; i++){
 		int * bin = convertToBin(ePrimes[i][0], iVars);
 
@@ -680,7 +682,8 @@ void mccluskey(int size, int * imps){
 			free(poss[i]);
 		}
 	}
-	free(poss);
+	//printf("rCount is %d\n",rCount);
+	if (rCount > 1) free(poss);
 	printf("\n");
 	free((void *)demPrimes);
 	free((void *)rows);
@@ -718,7 +721,6 @@ void sortDualArrays(int ** arr1,int * arr2, int size){
 }
 
 void solveTruthTable(int ** input, int * output, int size){
-	//printf("fuck\n");
 	int i,j;		//Loop indicies
 	int impCount = 0; //Prime implicant countOn
 	int * imps = malloc(sizeof(int) * pow(2,size));
@@ -754,67 +756,123 @@ void solveTruthTable(int ** input, int * output, int size){
 		}
 	}
 	
-	for(i = impCount; i < pow(2,size); i++){
-		free((void *)inArray[i]);
+	printf("Impcount %d\n",impCount);
+	if(impCount == pow(2,iVars)){
+		printf("The Result is: 1\n");
 	}
-	//printf("Dat size is %lu\n",sizeof(inArray));
-	inArray = realloc((void *)inArray,sizeof(int *) * impCount);
-	inArrayOnes = (int *)realloc((void *)inArrayOnes,sizeof(int) * impCount);
-	imps = (int *)realloc((void *)imps,sizeof(int)*impCount);
-	
-	sortDualArrays(inArray,inArrayOnes,impCount);
-	
-	int diff[impCount];
-	for(i = 0; i < impCount; i++){
-		diff[i] = 0;
+	else if (impCount == 0){
+		printf("The Result is: 0\n");
 	}
-	//printf("iao: %d\n",inArrayOnes[0]);
-	//printf("iao: %d\n",inArrayOnes[1]);
-	quine(inArray,inArrayOnes,impCount, &diff[0]);
-	//printf("Dat size is %d\n",primeSize);
-	
-	primeSortAndCompare();
-	for(i = 0; i < primeSize; i++){
-		for(j = 0; j < 10; j++){
-			if (prime[i][j] ==-1){
-				break;
-			}
-			//printf("%d, ",prime[i][j]);
+	else{
+		for(i = impCount; i < pow(2,size); i++){
+			free((void *)inArray[i]);
 		}
-		//printf("     %d\n",primeOnes[i]);
+		//printf("Dat size is %lu\n",sizeof(inArray));
+		inArray = realloc((void *)inArray,sizeof(int *) * impCount);
+		inArrayOnes = (int *)realloc((void *)inArrayOnes,sizeof(int) * impCount);
+		imps = (int *)realloc((void *)imps,sizeof(int)*impCount);
+		
+		sortDualArrays(inArray,inArrayOnes,impCount);
+		
+		int diff[impCount];
+		for(i = 0; i < impCount; i++){
+			diff[i] = 0;
+		}
+		//printf("iao: %d\n",inArrayOnes[0]);
+		//printf("iao: %d\n",inArrayOnes[1]);
+		quine(inArray,inArrayOnes,impCount, &diff[0]);
+		//printf("Dat size is %d\n",primeSize);
+		
+		primeSortAndCompare();
+		for(i = 0; i < primeSize; i++){
+			for(j = 0; j < 10; j++){
+				if (prime[i][j] ==-1){
+					break;
+				}
+				//printf("%d, ",prime[i][j]);
+			}
+			//printf("     %d\n",primeOnes[i]);
+		}
+		
+		mccluskey(impCount,imps);
+		printf("Good\n");
+		for (i = 0; i < impCount; i++){
+			free(inArray[i]);
+		}
+		free(inArray);
+		free(inArrayOnes);
+		free(imps);
 	}
-	
-	mccluskey(impCount,imps);
-	printf("Good\n");
-	for (i = 0; i < impCount; i++){
-		free(inArray[i]);
-	}
-	free(inArray);
-	free(inArrayOnes);
-	free(imps);
 }
 
 void freePrime(){
 	int i;
-	printf("%d\n", primeSize);
-	for( i = 0; i< primeSize; i++){
-		free((void *)prime[i]);
+	if(primeSize > 0){
+		printf("%d\n", primeSize);
+		for( i = 0; i< primeSize; i++){
+			free((void *)prime[i]);
+		}
+		free((void *)prime);
+		free((void *)primeOnes);
 	}
-	free((void *)prime);
-	free((void *)primeOnes);
+	primeSize = 0;
 }
 
 int main(){
-	int daFlip[] = {1,1,0,1,0,0,1,1};
 	int ** flip = malloc(sizeof(int *) * 3);
 	flip[0] = &i0[0];
 	flip[1] = &i1[0];
 	flip[2] = &i2[0];
 	
-	//printf("flip    %d\n",daFlip[1]);
-	
+	//Test Case 1
+	//Result Should be ~A~B + AB + ~AC
+	int daFlip[] = {1,1,0,1,0,0,1,1};
 	solveTruthTable(flip, &daFlip[0], 3);
-	free((void *)flip);
 	freePrime();
+
+	//Test Case 2
+	//Result Should be ABC
+	int daFlip1[] = {0,0,0,0,0,0,0,1};
+	solveTruthTable(flip, &daFlip1[0], 3);
+	freePrime();
+
+	//Test Case 3
+	//Result Should be ~AB + BC
+	int daFlip2[] = {0,0,1,1,0,0,0,1};
+	solveTruthTable(flip, &daFlip2[0], 3);
+	freePrime();
+	
+	//Test Case 4
+	//Result Should be ABC
+	int daFlip3[] = {0,0,0,0,0,0,0,0};
+	solveTruthTable(flip, &daFlip3[0], 3);
+	freePrime();
+
+	//Test Case 5
+	//Result Should be ABC
+	int daFlip4[] = {1,1,1,1,1,1,1,1};
+	solveTruthTable(flip, &daFlip4[0], 3);
+	freePrime();
+
+	iVars = 4;
+	int ** flip4 = malloc(sizeof(int *) * 4);
+	int in0[] = {0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1};
+	int in1[] = {0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1};
+	int in2[] = {0,0,0,0,1,1,1,1,0,0,0,0,1,1,1,1};
+	int in3[] = {0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1};
+
+	flip4[0] = &in0[0];
+	flip4[1] = &in1[0];
+	flip4[2] = &in2[0];
+	flip4[3] = &in3[0];
+
+	//Test Case 6
+	//Result Should be ABC
+	int daFlip5[] = {1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1};
+	solveTruthTable(flip4, &daFlip5[0], 4);
+	freePrime();
+
+	free((void *)flip);
+	free((void *)flip4);
 	return 0; 
 }
