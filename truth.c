@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
+#include "supplementalMath.h"
 int i2[] = {0,0,0,0,1,1,1,1};
 int i1[] = {0,0,1,1,0,0,1,1};
 int i0[] = {0,1,0,1,0,1,0,1};
@@ -14,26 +15,6 @@ int *primeOnes;
 int primeSize = 0;
 //int term = -1;
 
-/*
-	Determine and return n!.
-*/
-int fact(int n){
-	int i = n;
-	int sum = 1;
-	while(i>0){
-		sum = sum*i;
-		i--;
-	}
-	return sum;
-}
-
-/*
-	Return the number of combinations of size k from a set of size n.
-*/
-int combo(int n, int k){
-	int total = fact(n)/(fact(k) *fact(n-k));
-	return total;
-}
 
 int * copyOf(int * arr){
 	int i = 0;
@@ -51,77 +32,7 @@ int * copyOf(int * arr){
 	}
 	return newVal;
 }
-/*
-	Determine all of the combinations of the array arr of size k.
-*/
-int *** combinations(int ** arr, int size, int k){
-	int i,j;
-	int index[k];
-	for( i = 0; i < k; i++){
-		index[i] = i; 
-	}
-	int resultCount = 0;
-	int *** results = malloc(sizeof( int **) * combo(size, k));
-	//printf("Size: %d\n", combo(size, k));
-	//printf("Fact: %d\n", fact(size));
 
-	int done = 0;
-	while (done == 0 && resultCount < combo(size, k)){
-		//printf("%d\n", resultCount);
-		//Allocate memory for combination of size k.
-		results[resultCount] = malloc(sizeof(int *) * k);
-		//indicies[resultCount] = malloc(sizeof(int) * k);
-		//Place the new values in the combination.
-		for(i = 0; i < k; i++){
-			results[resultCount][i] = arr[index[i]];
-			//indicies[resultCount][i] = index[i];
-		}
-		resultCount++;
-
-		int carry = 0;
-		for( i = k-1; i > -1; i--){
-			//On the first iteration of the loop.
-			if ( i == k - 1){
-				if (index[i] < size) index[i] = index[i] + 1;
-				if (index[i] == size){
-					index[i] = index[i-1] + 1;
-					carry = 1;
-				}
-			}
-			else if(i != 0){
-				if(carry){
-					if(index[i] < size - k + i){
-						index[i] = index[i] + 1;
-						for( j = i; j < k - 1; j++){
-							index[j+1] = index[j] + 1;
-						}
-						carry = 0;
-					}
-					if (index[i] == size - k + 1 + i){
-						index[i] = index[i-1] + 1;
-						carry = 1;
-					}
-				}
-			}
-			else{
-				if(carry){
-					if(index[i] < size - k ){
-						index[i] = index[i] + 1;
-						for( j = i; j < k - 1; j++){
-							index[j+1] = index[j] + 1;
-						}
-						carry = 0;
-					}
-					if (index[0] == size - k + 1){
-						done = 1;
-						//printf("Done!\n");
-					}
-				}
-			}
-		}
-	}
-	return results;
-}
 
 /*
 	Print a multi-dimensional array.
@@ -276,7 +187,7 @@ void rmColumn(int ** arr, int rows, int col){
 
 
 /*
-	Performs processes necessary to the Quine-McCluskey algorithm.
+	Finds all of the essential primes in the truth table.
 */
 void quine(int ** arr, int * ones, int size, int * diff){
 	int * newOnes = malloc(sizeof(int *) * 2*size);
@@ -298,15 +209,14 @@ void quine(int ** arr, int * ones, int size, int * diff){
 		//printf("i = %d\n",i);
 		
 		for(j = 0; j < size; j++){
-			//printf("j = %d\n",j);
-			//printf("%d %d\n",i,j);
+			
 			//Determine if all of the n+1 values have a difference of n+1.
 			int correctDiff = 1;
 			int lastDiff = -500;
 			//printf("ones: %d    %d\n",ones[i],ones[j]);
 			
 			if (ones[i] + 1 == ones[j]){
-		//		printf("ones: %d    %d\n",ones[i+1],ones[j+1]);
+				//printf("ones: %d    %d\n",ones[i+1],ones[j+1]);
 				
 				//Iterate through values in each set and make sure that the difference is the same and a power of 2.
 				k = 0;
@@ -406,29 +316,7 @@ int * rmElement(int * arr, int * size, int el){
 	return realloc((void *)arr,sizeof(int)*(*size));
 }
 
-/*
-	Convert a number to a binary value with a fixed size.
-*/
-int * convertToBin(int num, int size){
-	int i, j, max, count;
-	max = 0;
-	count = 0;
-	while(num > pow(2,max)){
-		max++;
-	}
-	int * result = malloc(sizeof(int) * size);
-	for( i = size - 1; i > -1; i--){
-		if(num - pow(2,i) >= 0){
-			result[count] = 1;
-			num = num - pow(2,i);
-		}
-		else{
-			result[count] = 0;
-		}
-		count++;
-	}
-	return result;
-}
+
 
 /*
 	Compare to arrays to determine if their contents are the same.
@@ -450,6 +338,10 @@ int pCompare(int * a, int * b){
 	return 1;
 }
 
+/*
+	Uses the essential primes found by the quine function to find a 
+	minimal solution to the truth table.
+*/
 void mccluskey(int size, int * imps){
 	int ** grid = multiDim(primeSize,size);
 	int ** ePrimes = malloc(sizeof(int *) * size);
