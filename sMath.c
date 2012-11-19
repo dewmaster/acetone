@@ -115,3 +115,29 @@ int * convertToBin(int num, int size){
 	return result;
 }
 
+int ** generateTruthTable(int vars){
+	int i,j;
+	int size = pow(2,vars);
+	int ** table = malloc(sizeof(int *)*vars);
+
+
+	for(i = 0; i < vars; i++){
+		table[i] = malloc(sizeof(int)*size);
+		int count = pow(2,i);
+		int currInput = 0;
+		for(j = 0; j < size; j++){
+			if(count == 0 && currInput == 0){
+				currInput = 1;
+				count = pow(2,i);
+			}
+			else if(count == 0 && currInput == 1){
+				currInput = 0;
+				count = pow(2,i);
+			}
+			table[i][j] = currInput;
+			count--;
+		}
+	}
+
+	return table;
+}
