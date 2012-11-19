@@ -726,25 +726,25 @@ int main(){
 	freePrime();
 	
 	//Test Case 4
-	//Result Should be ABC
+	//Result Should be 0
 	int daFlip3[] = {0,0,0,0,0,0,0,0};
 	solveTruthTable(&daFlip3[0], 3);
 	freePrime();
 
 	//Test Case 5
-	//Result Should be ABC
+	//Result Should be 1
 	int daFlip4[] = {1,1,1,1,1,1,1,1};
 	solveTruthTable(&daFlip4[0], 3);
 	freePrime();
 
 	//Test Case 6
-	//Result Should be ABC
+	//Result Should be ~A~B~C~D + ~AB~CD + A~BC~D + ABCD
 	int daFlip5[] = {1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1};
 	solveTruthTable(&daFlip5[0], 4);
 	freePrime();
 
 	//Test Case 7
-	//Result Should be ABC
+	//Result Should be ~B~C~D~E + ~BC~DE + B~CD~E + BCDE
 	int daFlip6[] = {1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1};
 	solveTruthTable(&daFlip6[0], 5);
 	freePrime();

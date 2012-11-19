@@ -1,4 +1,4 @@
-Acetone (v 0.2)
+Acetone (v 0.2.1)
 ====
 ### A C implementation of the Quine-McCluskey Algorithm
 
@@ -11,3 +11,4 @@ The code needs a lot of work to be production ready including serious refactorin
 -	Add more detailed comments to sections of code.
 -	Remove global variables.
 -	Add interface to use as a command-line program.
+-	Allow use of "Don't Care" values.
