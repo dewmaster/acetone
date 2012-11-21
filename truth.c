@@ -1,12 +1,7 @@
-/*
-	Presently a hot mess. Lots of commented out code/blocks. Needs all of the refactoring.
-	
-*/
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
 #include "sMath.h"
-int iVars = 3; //Count of input variables
 int **prime;
 int *primeOnes;
 int primeSize = 0;
@@ -29,7 +24,6 @@ int * copyOf(int * arr){
 	return newVal;
 }
 
-
 /*
 	Print a multi-dimensional array.
 */
@@ -47,6 +41,8 @@ void printMultiArray(int ** arr, int size){
 
 /*
 	Sort primes by length, then numbers.
+
+	Global Dep - prime & primeSize.
 */
 void primeSortAndCompare(){
 	int i,j,k,l,swap;
@@ -127,6 +123,8 @@ void primeSortAndCompare(){
 
 /*
 	Add new array to the array of prime implicants.
+
+	Global Dep - prime, primeSize, & primeOnes.
 */
 void addToPrimes(int *arr, int num){
 	
@@ -142,8 +140,6 @@ void addToPrimes(int *arr, int num){
 		primeOnes = realloc((void *)primeOnes,sizeof(int)*primeSize);
 	}	
 	int newValsize = 6;
-	//newVal[i] = -1;
-	//newVal = (int *)realloc((void *)newVal, i+1);
 	primeOnes[primeSize-1] = num;
 	prime[primeSize-1] = copyOf(arr);;
 }
@@ -165,136 +161,6 @@ int ** multiDim(int size1, int size2){
 }
 
 /*
-	Remove column col from and array by zeroing out all of the values.
-	
-	This makes it possible to remove the essential prime implicants from the grid.
-*/
-void rmColumn(int ** arr, int rows, int col){
-	int i,j,k;
-	for(i = 0; i < rows; i++){
-		j = col;
-		arr[i][col] = 0;
-	}
-}
-
-
-/*
-	Finds all of the essential primes in the truth table.
-*/
-void quine(int ** arr, int * ones, int size, int * diff){
-	int * newOnes = malloc(sizeof(int *) * 2*size);
-	int **newPrimes = multiDim(2*size,pow(2,size));
-	
-	int newDiff[size];
-	int status[size];
-	int count = 0;
-	int i,j,k,l;
-	//printf("onessss: %d\n",ones[0]);
-	//Set newDiff and status to 0 for all values.
-	for(i = 0; i < size; i++){
-		newDiff[i] = 0;
-		status[i] = 0;
-	}
-	
-	for (i = 0; i < size; i++){
-		int found = 0;
-		//printf("i = %d\n",i);
-		
-		for(j = 0; j < size; j++){
-			
-			//Determine if all of the n+1 values have a difference of n+1.
-			int correctDiff = 1;
-			int lastDiff = -500;
-			//printf("ones: %d    %d\n",ones[i],ones[j]);
-			
-			if (ones[i] + 1 == ones[j]){
-				//printf("ones: %d    %d\n",ones[i+1],ones[j+1]);
-				
-				//Iterate through values in each set and make sure that the difference is the same and a power of 2.
-				k = 0;
-				l = 0;
-				while(arr[j][k] != -1){
-					if((log2(arr[j][l]-arr[i][k]) - (int)log2(arr[j][l]-arr[i][k])) != 0){correctDiff--;}
-					if(arr[j][l]-arr[i][k] != lastDiff && lastDiff != -500) {correctDiff--;}
-					lastDiff = (arr[j][l]-arr[i][k]);
-					//printf("Diffff: %d\n",(arr[j][l]-arr[i][k]));
-					l++;
-					k++;
-				}
-					
-			}
-			
-			//printf("Cdiff %d\n",correctDiff);
-			//If a value is in the set n+1, and the difference is a power of 2.
-			if(correctDiff == 1 && lastDiff != -500){
-				//printf("Diff = %d\n",lastDiff);
-				
-				k = 0;
-				l = 0;
-				while(arr[i][k] != -1){
-					//printf("count %d\n",count);
-					newPrimes[count][l] = arr[i][k];
-					k++;
-					l++;
-					//printf("Add to newPrimes\n");
-				}
-				k=0;
-				newOnes[count] = ones[i];
-				//printf("Add to newPrimes\n");
-				while(arr[j][k] != -1){
-					newPrimes[count][l] = arr[j][k];
-					k++;
-					l++;
-				}
-				newPrimes[count][l] = -1;
-				newDiff[count] = diff[i] + lastDiff;
-				//printf("i: %d, k: %d",i,k);
-				status[i] = 1;
-				status[j] = 1;
-				count++;
-				found = 1;
-			}
-		}
-		//If the set doesn't pair with any values from within the set n+1, then it is
-		//an esential prime implicant.
-		//printf("Status: %d\n",status[i]);
-		if (found == 0 && status[i] != 1){
-			addToPrimes(arr[i],diff[i]);
-			status[i] = -1;
-		}
-	}
-	for(i = count; i < 2*size; i++){
-			//if(status[i] != 1) {
-				free((void *)newPrimes[i]);
-				//free((void *)newOnes[i]);
-			//}
-		}
-	newPrimes = realloc((void *)newPrimes,sizeof(int **)*count);
-	newOnes = realloc((void *)newOnes,sizeof(int *)*count);
-	
-	//printf("NewPrimes: \n");
-	//printMultiArray(newPrimes, count);
-	//printf("\n");
-	if(count > 0){
-		quine(newPrimes, newOnes, count, &newDiff[0]);
-		for(i = 0; i < count; i++){
-			//if(status[i] != 1) {
-				free((void *)newPrimes[i]);
-				//free((void *)newOnes[i]);
-			//}
-		}
-	}
-	free((void *)newPrimes);
-	
-
-	free((void *)newOnes);
-	//for(i = 0; i < count; i++){
-	//	if(status[i] == 1) free((void *)newPrimes[i]);
-	//}
-	//free((void *)newPrimes);
-}
-
-/*
 	Remove an element el from an array arr.
 */
 int * rmElement(int * arr, int * size, int el){
@@ -308,7 +174,24 @@ int * rmElement(int * arr, int * size, int el){
 	return realloc((void *)arr,sizeof(int)*(*size));
 }
 
-
+/*
+	Sort two arrays.
+*/
+void sortDualArrays(int ** arr1,int * arr2, int size){
+	int i,j,swap1,swap2;
+	for (i = 0; i< size; i++){
+		for(j = 0; j < size - 1; j++){
+			if(arr2[j] > arr2[j+1]){
+				swap1 = arr1[j][0];
+				swap2 = arr2[j];
+				arr1[j][0] = arr1[j+1][0];
+				arr2[j] = arr2[j+1];
+				arr1[j+1][0] = swap1;
+				arr2[j+1] = swap2;
+			} 
+		}
+	}
+}
 
 /*
 	Compare to arrays to determine if their contents are the same.
@@ -331,17 +214,139 @@ int pCompare(int * a, int * b){
 }
 
 /*
+	Remove column col from and array by zeroing out all of the values.
+	
+	This makes it possible to remove the essential prime implicants from the grid.
+*/
+void rmColumn(int ** arr, int rows, int col){
+	int i,j,k;
+	for(i = 0; i < rows; i++){
+		j = col;
+		arr[i][col] = 0;
+	}
+}
+
+/*
+	Finds all of the essential primes in the truth table.
+
+	Global Dep - Indirect through addToPrimes.
+*/
+void quine(int ** arr, int * ones, int size, int * diff){
+	int * newOnes = malloc(sizeof(int *) * 2*size);
+	int **newPrimes = multiDim(2*size,pow(2,size));
+	int newDiff[size];
+	int status[size];
+	int count = 0;
+	int i,j,k,l;
+
+	//Set newDiff and status to 0 for all values.
+	for(i = 0; i < size; i++){
+		newDiff[i] = 0;
+		status[i] = 0;
+	}
+	
+
+
+	for (i = 0; i < size; i++){
+		int found = 0;
+		
+		for(j = 0; j < size; j++){
+			
+			//Determine if all of the n+1 values have a difference of n+1.
+			int correctDiff = 1;
+			int lastDiff = -500;
+			
+			if (ones[i] + 1 == ones[j]){
+				
+				//Iterate through values in each set and make sure that the difference is the same and a power of 2.
+				k = 0;
+				l = 0;
+				while(arr[j][k] != -1){
+					if((log2(arr[j][l]-arr[i][k]) - (int)log2(arr[j][l]-arr[i][k])) != 0){correctDiff--;}
+					if(arr[j][l]-arr[i][k] != lastDiff && lastDiff != -500) {correctDiff--;}
+					lastDiff = (arr[j][l]-arr[i][k]);
+					l++;
+					k++;
+				}
+					
+			}
+			
+			//If a value is in the set n+1, and the difference is a power of 2.
+			if(correctDiff == 1 && lastDiff != -500){
+				
+				k = 0;
+				l = 0;
+				while(arr[i][k] != -1){
+					newPrimes[count][l] = arr[i][k];
+					k++;
+					l++;
+				}
+				k=0;
+				newOnes[count] = ones[i];
+				while(arr[j][k] != -1){
+					newPrimes[count][l] = arr[j][k];
+					k++;
+					l++;
+				}
+				newPrimes[count][l] = -1;
+				newDiff[count] = diff[i] + lastDiff;
+				status[i] = 1;
+				status[j] = 1;
+				count++;
+				found = 1;
+			}
+		}
+		//If the set doesn't pair with any values from within the set n+1, then it is
+		//an esential prime implicant.
+		if (found == 0 && status[i] != 1){
+			addToPrimes(arr[i],diff[i]);
+			status[i] = -1;
+		}
+	}
+	for(i = count; i < 2*size; i++){
+			free((void *)newPrimes[i]);
+		}
+	newPrimes = realloc((void *)newPrimes,sizeof(int **)*count);
+	newOnes = realloc((void *)newOnes,sizeof(int *)*count);
+	
+	if(count > 0){
+		quine(newPrimes, newOnes, count, &newDiff[0]);
+		for(i = 0; i < count; i++){
+			free((void *)newPrimes[i]);
+		}
+	}
+	free((void *)newPrimes);
+	free((void *)newOnes);
+}
+
+char * addToString(char * string, int * size, char new){
+	*size = *size + 1;
+	if(*size == 1){
+		string = malloc(sizeof(char)*2);
+		string[*size-1] = new;
+		string[*size] = 0;
+	}
+	else{
+		string = realloc((void *)string,sizeof(char)*(*size+1));
+		string[*size-1] = new;
+		string[*size] = 0;
+	}
+	return string;
+}
+
+/*
 	Uses the essential primes found by the quine function to find a 
 	minimal solution to the truth table.
 */
-void mccluskey(int size, int * imps){
+char * mccluskey(int size, int * imps, int inputCount){
 	int ** grid = multiDim(primeSize,size);
 	int ** ePrimes = malloc(sizeof(int *) * size);
 	int ePrimeList[size];
 	if (ePrimes == NULL) exit(1);
 	int ePrimeCount = 0;
-	//printf("size = %d\n",size);
 	int i,j,k,l,a;
+	char *output;
+	int outputSize = 0;
 	
 	//Fill grid
 	for(i = 0; i < primeSize; i++){
@@ -356,8 +361,6 @@ void mccluskey(int size, int * imps){
 			}
 		}
 	}	
-	//printf("Finished filling\n");
-	//printMultiArray(grid,primeSize);
 	
 	/*
 		Cycle through the grid matrix checking for new "Essential Primes" and eliminating their columns until there are none left to be found.
@@ -368,7 +371,6 @@ void mccluskey(int size, int * imps){
 		newEPrimes = 0;
 		//Find Essential primes
 		for(i = 0; i < size; i++){
-			//printf("Go #%d\n",i);
 			int check = 0;
 			int lastPrime;
 			for(j = 0; j < primeSize; j++){
@@ -382,10 +384,8 @@ void mccluskey(int size, int * imps){
 			}
 			if(check == 1){
 				
-				//ePrimes[ePrimeCount] = malloc(sizeof(int)*10);
 				ePrimes[ePrimeCount] = copyOf(prime[lastPrime]);
 				ePrimeList[ePrimeCount] = lastPrime;
-				//printf("yup\n");
 				ePrimeCount++;
 				newEPrimes++;
 			}
@@ -425,7 +425,6 @@ void mccluskey(int size, int * imps){
 			j++;
 		}
 	}
-	//printf("Rows Counted.\n");
 	j = 0;
 	while(grid[0][j] != -1){
 		for(i = 0; i < primeSize; i++){
@@ -437,23 +436,20 @@ void mccluskey(int size, int * imps){
 		}
 		j++;
 	}
-	//printf("Cols Counted.\n");
 	cols = realloc((void *)cols,sizeof(int) * cCount);
-	//printf("Row number  is %d\n", rCount);
-	//printf("Col number  is %d\n", cCount);
+	 
 	/*
 		Determine all k-combinations of the remaining primes, increasing k until full coverage is reached.
 	*/
 	int ** demPrimes = malloc(sizeof(int *) * rCount);
-	//int * demPrimes = malloc(sizeof(int) * rCount);
 	for( i = 0; i < rCount; i++){
 		demPrimes[i] = copyOf(prime[rows[i]]);
 	} 
 
 	//Determine if full coverage is met.
-		int minSize = 9999;
-		int ** minSolution;
-		int *** poss;
+	int minSize = 9999;
+	int ** minSolution;
+	int *** poss;
 	for( l = 1; l < rCount; l++){
 		poss = combinations(demPrimes, rCount, l);
 
@@ -496,26 +492,25 @@ void mccluskey(int size, int * imps){
 		}
 	}
 
-	//Parse answer and print result;
-	printf("The result is:\n");
-
+	//Parse answer and print result
 	for(i = 0; i < ePrimeCount; i++){
-		int * bin = convertToBin(ePrimes[i][0], iVars);
+		int * bin = convertToBin(ePrimes[i][0], inputCount);
 
-		int * one = convertToBin(primeOnes[ePrimeList[i]], iVars);
-		//printf("Ones : %d\n", primeOnes[ePrimeList[i]]);
-		for(j = 0; j < iVars; j++){
-			//printf("    %d",one[j]);
+		int * one = convertToBin(primeOnes[ePrimeList[i]], inputCount);
+		for(j = 0; j < inputCount; j++){
 			if(one[j] != 1){
 				if(bin[j] == 0){
-					printf("~");
+					output = addToString(output,&outputSize,'~');
+
 				}
-				printf("%c",(char)(65+j));
+				output = addToString(output,&outputSize,(char)(65+j));
 			}
 		}
 
 		if(i != ePrimeCount - 1){
-			printf(" + ");
+			output = addToString(output,&outputSize,' ');
+			output = addToString(output,&outputSize,'+');
+			output = addToString(output,&outputSize,' ');
 		}
 		free(one);
 		free(bin);
@@ -523,7 +518,7 @@ void mccluskey(int size, int * imps){
 	if(minSize != 9999){
 		for(i = 0; i < minSize; i++){
 			int primeSame = -1;
-			int * bin = convertToBin(minSolution[i][0], iVars);
+			int * bin = convertToBin(minSolution[i][0], inputCount);
 
 			for( j = 0; j < primeSize; j++){
 				if(pCompare(prime[j], minSolution[i]) == 1) {
@@ -531,17 +526,17 @@ void mccluskey(int size, int * imps){
 					break;
 				}
 			}
-			//printf("Ones : %d\n", primeSame);
-			int * one = convertToBin(primeOnes[primeSame], iVars);
+			int * one = convertToBin(primeOnes[primeSame], inputCount);
+			output = addToString(output,&outputSize,' ');
+			output = addToString(output,&outputSize,'+');
+			output = addToString(output,&outputSize,' ');
 
-			printf(" + ");
-
-			for(j = 0; j < iVars; j++){
+			for(j = 0; j < inputCount; j++){
 				if(one[j] != 1){
 					if(bin[j] == 0){
-						printf("~");
+						output = addToString(output,&outputSize,'~');
 					}
-					printf("%c",(char)(65+j));
+					output = addToString(output,&outputSize,(char)(65+j));
 				}
 			}
 			free(bin);
@@ -555,9 +550,7 @@ void mccluskey(int size, int * imps){
 			free(poss[i]);
 		}
 	}
-	//printf("rCount is %d\n",rCount);
 	if (rCount > 1) free(poss);
-	printf("\n");
 	free((void *)demPrimes);
 	free((void *)rows);
 	free((void *)cols);
@@ -570,37 +563,18 @@ void mccluskey(int size, int * imps){
 		free((void *)grid[i]);
 	}
 	free((void *)grid);
-	//free((void *)ePrimes);
+
+	return output;
 }
 
-/*
-	Sort two arrays.
-*/
-void sortDualArrays(int ** arr1,int * arr2, int size){
-	int i,j,swap1,swap2;
-	for (i = 0; i< size; i++){
-		for(j = 0; j < size - 1; j++){
-			if(arr2[j] > arr2[j+1]){
-				swap1 = arr1[j][0];
-				swap2 = arr2[j];
-				arr1[j][0] = arr1[j+1][0];
-				arr2[j] = arr2[j+1];
-				arr1[j+1][0] = swap1;
-				arr2[j+1] = swap2;
-			} 
-		}
-	}
-	//printf("Not Sort arrays\n");
-}
-
-void solveTruthTable(int * output, int size){
-	iVars = size;
+char * solveTruthTable(int * output, int size){
 	int i,j;		//Loop indicies
 	int impCount = 0; //Prime implicant countOn
 	int * imps = malloc(sizeof(int) * pow(2,size));
 	int ** input = generateTruthTable(size);
-	//
 	int **inArray=malloc(sizeof(int *) * pow(2,size));
+	char * out;
+	int outputSize = 0;
 	if (inArray == NULL) exit(1);
 	for(i = 0; i < pow(2,size); i++){
 			inArray[i] = malloc(sizeof(int) * 2);
@@ -610,7 +584,7 @@ void solveTruthTable(int * output, int size){
 	int *inArrayOnes=(int *)malloc(sizeof(int) * pow(2,size));
 	if (inArrayOnes == NULL) exit(1);
 	
-	//Loop through all output values to find prime implicants
+	//Loop through all output values and make a list of the 'ones'.
 	for(i = 0; i < pow(2,size); i++){
 		if (output[i] == 1){
 			int bitVal = 0; //The base 10 value of the input.
@@ -622,30 +596,35 @@ void solveTruthTable(int * output, int size){
 				if (input[j][i] == 1) bitCount++;
 			}
 			
+			//Save the value.
 			inArray[impCount][0] = bitVal;
-			//printf("bcount: %d\n",);
 			inArrayOnes[impCount] = bitCount;
 			imps[impCount] = bitVal;
 			impCount++;		//Update counter
 		}
 	}
 	
-	if(impCount == pow(2,iVars)){
-		printf("The Result is: 1\n");
+
+	//If every output = 1.
+	if(impCount == pow(2,size)){
+		out = addToString(out,&outputSize,'1');
+		outputSize = 1;
 		for(i = 0; i <  pow(2,size); i++){
 			free(inArray[i]);
 		}
 		free(inArray);
 		
 	}
+	//If every output = 0.
 	else if (impCount == 0){
-		printf("The Result is: 0\n");
+		out = addToString(out,&outputSize,'0');
+		outputSize = 1;
 		for(i = 0; i <  pow(2,size); i++){
 			free(inArray[i]);
 		}
 		free(inArray);
-		
 	}
+	//Calculate the other outputs.
 	else{
 		for(i = impCount; i < pow(2,size); i++){
 			free((void *)inArray[i]);
@@ -670,13 +649,11 @@ void solveTruthTable(int * output, int size){
 				if (prime[i][j] ==-1){
 					break;
 				}
-				//printf("%d, ",prime[i][j]);
 			}
-			//printf("     %d\n",primeOnes[i]);
 		}
 		
-		mccluskey(impCount,imps);
-		printf("Good\n");
+		out = mccluskey(impCount,imps,size);
+
 		for (i = 0; i < impCount; i++){
 			free(inArray[i]);
 		}
@@ -684,13 +661,15 @@ void solveTruthTable(int * output, int size){
 		
 	}
 
+
+	//Free everything left.
 	for(i = 0; i < size; i++){
 		free(input[i]);
 	}
 	free(input);
 	free(inArrayOnes);
 	free(imps);
-
+	return out;
 }
 
 void freePrime(){
@@ -706,48 +685,55 @@ void freePrime(){
 }
 
 int main(){
-	
+	char * value;
 	//Test Case 1
 	//Result Should be ~A~B + AB + ~AC
 	int daFlip[] = {1,1,0,1,0,0,1,1};
-	solveTruthTable(&daFlip[0], 3);
+	value = solveTruthTable(&daFlip[0], 3);
+	printf("%s\n",value);
 	freePrime();
 
 	//Test Case 2
 	//Result Should be ABC
 	int daFlip1[] = {0,0,0,0,0,0,0,1};
-	solveTruthTable(&daFlip1[0], 3);
+	value = solveTruthTable(&daFlip1[0], 3);
+	printf("%s\n",value);
 	freePrime();
-
+	free(value);
 	//Test Case 3
 	//Result Should be ~AB + BC
 	int daFlip2[] = {0,0,1,1,0,0,0,1};
-	solveTruthTable(&daFlip2[0], 3);
+	value = solveTruthTable(&daFlip2[0], 3);
+	printf("%s\n",value);
 	freePrime();
-	
+	free(value);
 	//Test Case 4
 	//Result Should be 0
 	int daFlip3[] = {0,0,0,0,0,0,0,0};
-	solveTruthTable(&daFlip3[0], 3);
+	value = solveTruthTable(&daFlip3[0], 3);
+	printf("%s\n",value);
 	freePrime();
-
+	free(value);
 	//Test Case 5
 	//Result Should be 1
 	int daFlip4[] = {1,1,1,1,1,1,1,1};
-	solveTruthTable(&daFlip4[0], 3);
+	value = solveTruthTable(&daFlip4[0], 3);
+	printf("%s\n",value);
 	freePrime();
-
+	free(value);
 	//Test Case 6
 	//Result Should be ~A~B~C~D + ~AB~CD + A~BC~D + ABCD
 	int daFlip5[] = {1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1};
-	solveTruthTable(&daFlip5[0], 4);
+	value = solveTruthTable(&daFlip5[0], 4);
+	printf("%s\n",value);
 	freePrime();
-
+	free(value);
 	//Test Case 7
 	//Result Should be ~B~C~D~E + ~BC~DE + B~CD~E + BCDE
 	int daFlip6[] = {1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1};
-	solveTruthTable(&daFlip6[0], 5);
+	value = solveTruthTable(&daFlip6[0], 5);
+	printf("%s\n",value);
 	freePrime();
-
+	free(value);
 	return 0; 
 }
