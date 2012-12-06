@@ -13,3 +13,4 @@ The code needs a lot of work to be production ready including serious refactorin
 -	Add interface to use as a command-line program.
 -	Allow use of "Don't Care" values.
 -	Modify Output names.
+-	Add multiple output options, such as return all solutions, return 		one solution of smallest size, return all solutions of smallest size.
