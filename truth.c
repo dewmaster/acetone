@@ -231,7 +231,7 @@ void rmColumn(int ** arr, int rows, int col){
 
 	Global Dep - Indirect through addToPrimes.
 */
-void quine(int ** arr, int * ones, int size, int * diff){
+void findEssentialPrimes(int ** arr, int * ones, int size, int * diff){
 	int * newOnes = malloc(sizeof(int *) * 2*size);
 	int **newPrimes = multiDim(2*size,pow(2,size));
 	int newDiff[size];
@@ -310,7 +310,7 @@ void quine(int ** arr, int * ones, int size, int * diff){
 	newOnes = realloc((void *)newOnes,sizeof(int *)*count);
 	
 	if(count > 0){
-		quine(newPrimes, newOnes, count, &newDiff[0]);
+		findEssentialPrimes(newPrimes, newOnes, count, &newDiff[0]);
 		for(i = 0; i < count; i++){
 			free((void *)newPrimes[i]);
 		}
@@ -319,6 +319,9 @@ void quine(int ** arr, int * ones, int size, int * diff){
 	free((void *)newOnes);
 }
 
+/*
+	Adds a character to the end of a string.
+*/
 char * addToString(char * string, int * size, char new){
 	*size = *size + 1;
 	if(*size == 1){
@@ -335,7 +338,7 @@ char * addToString(char * string, int * size, char new){
 }
 
 /*
-	Uses the essential primes found by the quine function to find a 
+	Uses the essential primes found by the findEssentialPrimes function to find a 
 	minimal solution to the truth table.
 */
 char * mccluskey(int size, int * imps, int inputCount){
@@ -348,7 +351,7 @@ char * mccluskey(int size, int * imps, int inputCount){
 	char *output;
 	int outputSize = 0;
 	
-	//Fill grid
+	//Fill grid with 0s.
 	for(i = 0; i < primeSize; i++){
 		for(j = 0; j < size; j++){
 			grid[i][j] = 0;
@@ -641,7 +644,7 @@ char * solveTruthTable(int * output, int size){
 			diff[i] = 0;
 		}
 		
-		quine(inArray,inArrayOnes,impCount, &diff[0]);
+		findEssentialPrimes(inArray,inArrayOnes,impCount, &diff[0]);
 		
 		primeSortAndCompare();
 		for(i = 0; i < primeSize; i++){
@@ -669,9 +672,23 @@ char * solveTruthTable(int * output, int size){
 	free(input);
 	free(inArrayOnes);
 	free(imps);
+	
+	//Free primes.
+	if(primeSize > 0){
+		for( i = 0; i< primeSize; i++){
+			free((void *)prime[i]);
+		}
+		free((void *)prime);
+		free((void *)primeOnes);
+	}
+	primeSize = 0;
+
 	return out;
 }
 
+/*
+	Frees memory used by the prime array.
+*/
 void freePrime(){
 	int i;
 	if(primeSize > 0){
@@ -684,7 +701,61 @@ void freePrime(){
 	primeSize = 0;
 }
 
-int main(){
+void parseCSV(){
+	
+}
+
+int main(int argc, char *argv[]){
+
+	FILE * input;
+
+	input = fopen(argv[1],"r");
+	char cur = getc(input);
+	int row = 0;
+	char ** table = malloc(sizeof(char *));
+	int rowmax = 0;
+
+	while(cur != EOF){
+		if(row > 0)
+			table = realloc((void *)table,sizeof(char *) * (row + 1));
+		int rowsize = 0;
+
+		while(cur != '\n'){
+
+			rowsize++;
+			if (rowsize > rowmax)
+				rowmax = rowsize;
+			if (rowsize == 1)
+				table[row] = malloc(sizeof(char));
+			else
+				table[row] = realloc((void *)table[row],sizeof(char) * rowsize);
+
+			table[row][rowsize-1] = cur;
+
+			cur = getc(input);
+		}
+
+		if (cur == '\n')
+			cur = getc(input);
+		row++;
+
+	}
+
+	char * value;
+	int outs[row+1];
+	int i;
+	for(i = 0; i < row; i++){
+		if(table[i][rowmax-1] == 48)
+			outs[i] = 0;
+		else
+			outs[i] = 1;
+	}
+
+	value = solveTruthTable(&outs[0], rowmax-1);
+	printf("%s\n",value);
+	freePrime();
+	free(value);
+	/*
 	char * value;
 	//Test Case 1
 	//Result Should be ~A~B + AB + ~AC
@@ -692,6 +763,7 @@ int main(){
 	value = solveTruthTable(&daFlip[0], 3);
 	printf("%s\n",value);
 	freePrime();
+	free(value);
 
 	//Test Case 2
 	//Result Should be ABC
@@ -700,6 +772,7 @@ int main(){
 	printf("%s\n",value);
 	freePrime();
 	free(value);
+
 	//Test Case 3
 	//Result Should be ~AB + BC
 	int daFlip2[] = {0,0,1,1,0,0,0,1};
@@ -707,6 +780,7 @@ int main(){
 	printf("%s\n",value);
 	freePrime();
 	free(value);
+
 	//Test Case 4
 	//Result Should be 0
 	int daFlip3[] = {0,0,0,0,0,0,0,0};
@@ -714,6 +788,7 @@ int main(){
 	printf("%s\n",value);
 	freePrime();
 	free(value);
+
 	//Test Case 5
 	//Result Should be 1
 	int daFlip4[] = {1,1,1,1,1,1,1,1};
@@ -721,6 +796,7 @@ int main(){
 	printf("%s\n",value);
 	freePrime();
 	free(value);
+
 	//Test Case 6
 	//Result Should be ~A~B~C~D + ~AB~CD + A~BC~D + ABCD
 	int daFlip5[] = {1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1};
@@ -728,6 +804,7 @@ int main(){
 	printf("%s\n",value);
 	freePrime();
 	free(value);
+
 	//Test Case 7
 	//Result Should be ~B~C~D~E + ~BC~DE + B~CD~E + BCDE
 	int daFlip6[] = {1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1};
@@ -735,5 +812,7 @@ int main(){
 	printf("%s\n",value);
 	freePrime();
 	free(value);
+	*/
+
 	return 0; 
 }
