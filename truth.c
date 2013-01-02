@@ -707,6 +707,15 @@ void parseCSV(){
 
 int main(int argc, char *argv[]){
 
+	
+	/*
+		In the future, it would be good to add multiple modes,
+		one for generating a blank input file, one for only specifying 
+		the ones.
+	
+	*/
+
+	//Parse commandline input and file information.
 	FILE * input;
 
 	input = fopen(argv[1],"r");
@@ -714,25 +723,51 @@ int main(int argc, char *argv[]){
 	int row = 0;
 	char ** table = malloc(sizeof(char *));
 	int rowmax = 0;
+	char **IOnames = malloc(sizeof(char *));
+	int names = 0;
 
 	while(cur != EOF){
 		if(row > 0)
 			table = realloc((void *)table,sizeof(char *) * (row + 1));
 		int rowsize = 0;
 
-		while(cur != '\n'){
+		while(cur != '\n' && cur != EOF){
+			if(cur == ',')
+				cur = getc(input);
+			else if(row == 0){
+				int stringSize = 0;
+				char * IOname = malloc(sizeof(char));
 
-			rowsize++;
-			if (rowsize > rowmax)
-				rowmax = rowsize;
-			if (rowsize == 1)
-				table[row] = malloc(sizeof(char));
-			else
-				table[row] = realloc((void *)table[row],sizeof(char) * rowsize);
+				while(cur != ',' && cur != '\n'){
+					//printf("%c\n", cur);
+					if(stringSize > 0)
+						IOname = realloc((void *)IOname,sizeof(char)*(stringSize+1));
+					IOname[stringSize] = cur;
+					stringSize++;
+					cur = getc(input);
+				}
+				if(cur != '\n'){
+					IOname = realloc((void *)IOname,sizeof(char)*(stringSize+1));
+					IOname[stringSize] = '\0';
+					if(names > 0)
+						IOnames = realloc((void *)IOnames,sizeof(char)*(names+1));
+					IOnames[names] = IOname;
+					names++;
+				}
+			}
+			else{
+				rowsize++;
+				if (rowsize > rowmax)
+					rowmax = rowsize;
+				if (rowsize == 1)
+					table[row] = malloc(sizeof(char));
+				else
+					table[row] = realloc((void *)table[row],sizeof(char) * rowsize);
 
-			table[row][rowsize-1] = cur;
+				table[row][rowsize-1] = cur;
 
-			cur = getc(input);
+				cur = getc(input);
+			}
 		}
 
 		if (cur == '\n')
@@ -741,78 +776,28 @@ int main(int argc, char *argv[]){
 
 	}
 
-	char * value;
-	int outs[row+1];
 	int i;
-	for(i = 0; i < row; i++){
-		if(table[i][rowmax-1] == 48)
-			outs[i] = 0;
-		else
-			outs[i] = 1;
+	int inCount = log10(row-1)/log10(2);
+	printf("%d\n",inCount);
+	char * inputs[inCount];
+	for(i = 0; i < inCount; i++){
+		inputs[i] = IOnames[i];
 	}
 
-	value = solveTruthTable(&outs[0], rowmax-1);
-	printf("%s\n",value);
-	freePrime();
-	free(value);
-	/*
-	char * value;
-	//Test Case 1
-	//Result Should be ~A~B + AB + ~AC
-	int daFlip[] = {1,1,0,1,0,0,1,1};
-	value = solveTruthTable(&daFlip[0], 3);
-	printf("%s\n",value);
-	freePrime();
-	free(value);
-
-	//Test Case 2
-	//Result Should be ABC
-	int daFlip1[] = {0,0,0,0,0,0,0,1};
-	value = solveTruthTable(&daFlip1[0], 3);
-	printf("%s\n",value);
-	freePrime();
-	free(value);
-
-	//Test Case 3
-	//Result Should be ~AB + BC
-	int daFlip2[] = {0,0,1,1,0,0,0,1};
-	value = solveTruthTable(&daFlip2[0], 3);
-	printf("%s\n",value);
-	freePrime();
-	free(value);
-
-	//Test Case 4
-	//Result Should be 0
-	int daFlip3[] = {0,0,0,0,0,0,0,0};
-	value = solveTruthTable(&daFlip3[0], 3);
-	printf("%s\n",value);
-	freePrime();
-	free(value);
-
-	//Test Case 5
-	//Result Should be 1
-	int daFlip4[] = {1,1,1,1,1,1,1,1};
-	value = solveTruthTable(&daFlip4[0], 3);
-	printf("%s\n",value);
-	freePrime();
-	free(value);
-
-	//Test Case 6
-	//Result Should be ~A~B~C~D + ~AB~CD + A~BC~D + ABCD
-	int daFlip5[] = {1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1};
-	value = solveTruthTable(&daFlip5[0], 4);
-	printf("%s\n",value);
-	freePrime();
-	free(value);
-
-	//Test Case 7
-	//Result Should be ~B~C~D~E + ~BC~DE + B~CD~E + BCDE
-	int daFlip6[] = {1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1};
-	value = solveTruthTable(&daFlip6[0], 5);
-	printf("%s\n",value);
-	freePrime();
-	free(value);
-	*/
+	char *value;
+	int j;
+	for(j = 0; j < rowmax - inCount; j++){
+		int outs[row];
+		for(i = 0; i < row-1; i++){
+			if(table[i+1][inCount+j] == 48)
+				outs[i] = 0;
+			else
+				outs[i] = 1;
+		}
+		value = solveTruthTable(&outs[0], inCount);
+		printf("Output %d = %s\n", j+1,value);
+		freePrime();
+	}
 
 	return 0; 
 }
