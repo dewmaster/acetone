@@ -1,3 +1,6 @@
+#ifndef TRUTH_H
+#define TRUTH_H
+
 int * copyOf(int * arr);
 void printMultiArray(int ** arr, int size);
 void primeSortAndCompare();
@@ -13,3 +16,5 @@ char * mccluskey(int size, int * imps, int inputCount);
 char * solveTruthTable(int * output, int size);
 void freePrime();
 void parseCSV();
+
+#endif

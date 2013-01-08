@@ -2,7 +2,7 @@
 CC = gcc
 EXEC = truth
 CCFLAGS =  -g
-OBJS = sMath.o truth.o 
+OBJS = sMath.o truth.o acetone.o
 
 ${EXEC}: ${OBJS}
 	${CC} ${CCFLAGS} -lm -o ${EXEC} ${OBJS}
@@ -17,4 +17,5 @@ clean:
 	rm -f ${EXEC} ${OBJS}
 
 sMath.o: sMath.c sMath.h
-truth.o: truth.c
+truth.o: truth.c truth.h
+acetone.o: acetone.c
