@@ -1,4 +1,4 @@
-Acetone (v 0.3)
+Acetone (v 0.4)
 ====
 ### A C implementation of the Quine-McCluskey Algorithm
 
