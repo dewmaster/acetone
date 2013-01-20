@@ -11,9 +11,17 @@ This program is a command-line utility for solving truth tables. It is currently
 -	Input from .csv file.
 -	Clean up and organize functions.
 -	Add more detailed comments to sections of code.
--	Remove global variables.
 -	Add interface to use as a command-line program.
 -	Allow use of "Don't Care" values.
--	Modify Output names.
+-	Modify Input names.
 -	Add multiple output options, such as return all solutions, return one solution of smallest size, return all solutions of smallest size.
 -	Actively prevent misoperation and return useful error messages. Currently there is nothing built in to prevent errors.
+-	Create several test cases and a driver to run the tests.
+
+
+Update History
+----------
+
+Version 0.4
+-	Removed global variables.
+-	Created test files.

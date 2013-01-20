@@ -4,11 +4,6 @@
 #include "sMath.h"
 #include "truth.h"
 
-int **prime;
-int *primeOnes;
-int primeSize = 0;
-
-
 int * copyOf(int * arr){
 	int i = 0;
 	int * newVal = malloc(sizeof(int) * 1);
@@ -46,22 +41,24 @@ void printMultiArray(int ** arr, int size){
 
 	Global Dep - prime & primeSize.
 */
-void primeSortAndCompare(){
+void primeSortAndCompare(int *** prime, int * primeSize){
+	//int ** prime = *prime1;
+	//int primeSize = *primeSize1;
 	int i,j,k,l,swap;
-	int pLength[primeSize];
+	int pLength[*primeSize];
 
 	//Sort bits in a set
-	for(i = 0; i < primeSize; i++){
+	for(i = 0; i < *primeSize; i++){
 		j = 0; k = 0; l = 0;
-		while(prime[i][k] != -1){
+		while((*prime)[i][k] != -1){
 		pLength[i] = k+1;
 			l = 0;
-			while(prime[i][l+1] != -1){
+			while((*prime)[i][l+1] != -1){
 				
-				if(prime[i][l] > prime[i][l+1]){
-					swap = prime[i][l];
-					prime[i][l] = prime[i][l+1];
-					prime[i][l+1] = swap;
+				if((*prime)[i][l] > (*prime)[i][l+1]){
+					swap = (*prime)[i][l];
+					(*prime)[i][l] = (*prime)[i][l+1];
+					(*prime)[i][l+1] = swap;
 				}
 				l++;
 			}
@@ -70,12 +67,12 @@ void primeSortAndCompare(){
 	}
 
 	//Remove duplicate sets
-	for(i = 0; i < primeSize-1; i++){
-		for(j = i+1; j < primeSize; j++){
+	for(i = 0; i < *primeSize-1; i++){
+		for(j = i+1; j < *primeSize; j++){
 			int same = 1;
 			k = 0;
-			while(prime[i][k] != -1 && prime[j][k] != -1){
-				if(prime[i][k] != prime[j][k]){
+			while((*prime)[i][k] != -1 && (*prime)[j][k] != -1){
+				if((*prime)[i][k] != (*prime)[j][k]){
 					same = 0;
 					break; 
 				}
@@ -83,22 +80,22 @@ void primeSortAndCompare(){
 			}
 			
 			if(same == 1){
-				int * swap = prime[j];
-				prime[j] = prime[primeSize - 1];
-				prime[primeSize - 1] = swap;
-				primeSize--;
+				int * swap = (*prime)[j];
+				(*prime)[j] = (*prime)[*primeSize - 1];
+				(*prime)[*primeSize - 1] = swap;
+				*primeSize--;
 			}
 			
 		}
 	}
 	
 	//Sort Sets
-	for(i = 0; i < primeSize; i++){
-		for(j = 0; j < primeSize-1; j++){
+	for(i = 0; i < *primeSize; i++){
+		for(j = 0; j < *primeSize-1; j++){
 			if(pLength[j] > pLength[j+1]){
-				int * swap = prime[j+1];
-				prime[j+1] = prime[j];
-				prime[j] = swap;
+				int * swap = (*prime)[j+1];
+				(*prime)[j+1] = (*prime)[j];
+				(*prime)[j] = swap;
 				int swapL = pLength[j+1];
 				pLength[j+1] = pLength[j];
 				pLength[j] = swapL;
@@ -106,11 +103,11 @@ void primeSortAndCompare(){
 			
 			if(pLength[j] == pLength[j+1]){
 				k = 0;
-				while(prime[j][k] != -1){
-					if(prime[j][k] > prime[j+1][k]){
-						int * swap = prime[j+1];
-						prime[j+1] = prime[j];
-						prime[j] = swap;
+				while((*prime)[j][k] != -1){
+					if((*prime)[j][k] > (*prime)[j+1][k]){
+						int * swap = (*prime)[j+1];
+						(*prime)[j+1] = (*prime)[j];
+						(*prime)[j] = swap;
 						int swapL = pLength[j+1];
 						pLength[j+1] = pLength[j];
 						pLength[j] = swapL;
@@ -121,6 +118,9 @@ void primeSortAndCompare(){
 			
 		}
 	}
+
+	//*prime1 = prime;
+	//*primeSize1 = primeSize;
 }
 
 /*
@@ -128,22 +128,23 @@ void primeSortAndCompare(){
 
 	Global Dep - prime, primeSize, & primeOnes.
 */
-void addToPrimes(int *arr, int num){
-	
+void addToPrimes(int *arr, int num, int *** prime, int ** primeOnes, int * primeSize){
+
 	int i, j, count;
-	if (primeSize == 0){
-		primeSize++;
-		prime = malloc(sizeof(int *));
-		primeOnes = malloc(sizeof(int));
+	if (*primeSize == 0){
+		*primeSize = *primeSize + 1;
+		*prime = malloc(sizeof(int *));
+		*primeOnes = malloc(sizeof(int));
 	}
 	else{
-		primeSize++;
-		prime = realloc((void *)prime,sizeof(int *)*primeSize);
-		primeOnes = realloc((void *)primeOnes,sizeof(int)*primeSize);
+		*primeSize = *primeSize + 1;
+		*prime = (int **)realloc((void *)(*prime),sizeof(int *)*(*primeSize));
+		*primeOnes = realloc((void *)(*primeOnes),sizeof(int)*(*primeSize));
+
 	}	
 	int newValsize = 6;
-	primeOnes[primeSize-1] = num;
-	prime[primeSize-1] = copyOf(arr);;
+	(*primeOnes)[*primeSize-1] = num;
+	(*prime)[*primeSize-1] = copyOf(arr);
 }
 
 /*
@@ -233,7 +234,7 @@ void rmColumn(int ** arr, int rows, int col){
 
 	Global Dep - Indirect through addToPrimes.
 */
-void findEssentialPrimes(int ** arr, int * ones, int size, int * diff){
+void findEssentialPrimes(int ** arr, int * ones, int size, int * diff,int *** prime, int ** primeOnes, int *primeSize){
 	int * newOnes = malloc(sizeof(int *) * 2*size);
 	int **newPrimes = multiDim(2*size,pow(2,size));
 	int newDiff[size];
@@ -246,8 +247,6 @@ void findEssentialPrimes(int ** arr, int * ones, int size, int * diff){
 		newDiff[i] = 0;
 		status[i] = 0;
 	}
-	
-
 
 	for (i = 0; i < size; i++){
 		int found = 0;
@@ -301,7 +300,7 @@ void findEssentialPrimes(int ** arr, int * ones, int size, int * diff){
 		//If the set doesn't pair with any values from within the set n+1, then it is
 		//an esential prime implicant.
 		if (found == 0 && status[i] != 1){
-			addToPrimes(arr[i],diff[i]);
+			addToPrimes(arr[i],diff[i],prime,primeOnes,primeSize);
 			status[i] = -1;
 		}
 	}
@@ -312,7 +311,7 @@ void findEssentialPrimes(int ** arr, int * ones, int size, int * diff){
 	newOnes = realloc((void *)newOnes,sizeof(int *)*count);
 	
 	if(count > 0){
-		findEssentialPrimes(newPrimes, newOnes, count, &newDiff[0]);
+		findEssentialPrimes(newPrimes, newOnes, count, &newDiff[0], prime, primeOnes,primeSize);
 		for(i = 0; i < count; i++){
 			free((void *)newPrimes[i]);
 		}
@@ -342,9 +341,11 @@ char * addToString(char * string, int * size, char new){
 /*
 	Uses the essential primes found by the findEssentialPrimes function to find a 
 	minimal solution to the truth table.
+
+	Global Dep - prime and primeSize.
 */
-char * mccluskey(int size, int * imps, int inputCount){
-	int ** grid = multiDim(primeSize,size);
+char * mccluskey(int size, int * imps, int inputCount, int *** prime, int ** primeOnes, int * primeSize){
+	int ** grid = multiDim(*primeSize,size);
 	int ** ePrimes = malloc(sizeof(int *) * size);
 	int ePrimeList[size];
 	if (ePrimes == NULL) exit(1);
@@ -354,12 +355,12 @@ char * mccluskey(int size, int * imps, int inputCount){
 	int outputSize = 0;
 	
 	//Fill grid with 0s.
-	for(i = 0; i < primeSize; i++){
+	for(i = 0; i < *primeSize; i++){
 		for(j = 0; j < size; j++){
 			grid[i][j] = 0;
 			k = 0;
-			while(prime[i][k] != -1){
-				if(prime[i][k] == imps[j]){
+			while((*prime)[i][k] != -1){
+				if((*prime)[i][k] == imps[j]){
 					grid[i][j] = 1;
 				}
 				k++;
@@ -378,7 +379,7 @@ char * mccluskey(int size, int * imps, int inputCount){
 		for(i = 0; i < size; i++){
 			int check = 0;
 			int lastPrime;
-			for(j = 0; j < primeSize; j++){
+			for(j = 0; j < *primeSize; j++){
 				if(grid[j][i] == 1){
 					check++;
 					lastPrime = j;
@@ -389,7 +390,7 @@ char * mccluskey(int size, int * imps, int inputCount){
 			}
 			if(check == 1){
 				
-				ePrimes[ePrimeCount] = copyOf(prime[lastPrime]);
+				ePrimes[ePrimeCount] = copyOf((*prime)[lastPrime]);
 				ePrimeList[ePrimeCount] = lastPrime;
 				ePrimeCount++;
 				newEPrimes++;
@@ -402,7 +403,7 @@ char * mccluskey(int size, int * imps, int inputCount){
 			while(ePrimes[i][k] != -1){
 				for(j = 0; j < size; j++){
 					if (imps[j] == ePrimes[i][k]){
-						rmColumn(grid, primeSize, j);
+						rmColumn(grid, *primeSize, j);
 					}
 				}
 				k++;
@@ -415,11 +416,11 @@ char * mccluskey(int size, int * imps, int inputCount){
 	*/
 	
 	//	Find the number that contain 1's and store their indicies for easy access.
-	int * rows = malloc(sizeof(int) * (primeSize-ePrimeCount));
-	int * cols = malloc(sizeof(int) * primeSize);
+	int * rows = malloc(sizeof(int) * (*primeSize-ePrimeCount));
+	int * cols = malloc(sizeof(int) * (*primeSize));
 	int rCount = 0;
 	int cCount = 0;
-	for(i = 0; i < primeSize; i++){
+	for(i = 0; i < *primeSize; i++){
 		j = 0;
 		while(grid[i][j] != -1){
 			if(grid[i][j] == 1){
@@ -432,7 +433,7 @@ char * mccluskey(int size, int * imps, int inputCount){
 	}
 	j = 0;
 	while(grid[0][j] != -1){
-		for(i = 0; i < primeSize; i++){
+		for(i = 0; i < *primeSize; i++){
 			if(grid[i][j] == 1){
 				cols[cCount] = imps[i];
 				cCount++;
@@ -448,7 +449,7 @@ char * mccluskey(int size, int * imps, int inputCount){
 	*/
 	int ** demPrimes = malloc(sizeof(int *) * rCount);
 	for( i = 0; i < rCount; i++){
-		demPrimes[i] = copyOf(prime[rows[i]]);
+		demPrimes[i] = copyOf((*prime)[rows[i]]);
 	} 
 
 	//Determine if full coverage is met.
@@ -501,7 +502,7 @@ char * mccluskey(int size, int * imps, int inputCount){
 	for(i = 0; i < ePrimeCount; i++){
 		int * bin = convertToBin(ePrimes[i][0], inputCount);
 
-		int * one = convertToBin(primeOnes[ePrimeList[i]], inputCount);
+		int * one = convertToBin((*primeOnes)[ePrimeList[i]], inputCount);
 		for(j = 0; j < inputCount; j++){
 			if(one[j] != 1){
 				if(bin[j] == 0){
@@ -525,13 +526,13 @@ char * mccluskey(int size, int * imps, int inputCount){
 			int primeSame = -1;
 			int * bin = convertToBin(minSolution[i][0], inputCount);
 
-			for( j = 0; j < primeSize; j++){
-				if(pCompare(prime[j], minSolution[i]) == 1) {
+			for( j = 0; j < *primeSize; j++){
+				if(pCompare((*prime)[j], minSolution[i]) == 1) {
 					primeSame = j;
 					break;
 				}
 			}
-			int * one = convertToBin(primeOnes[primeSame], inputCount);
+			int * one = convertToBin((*primeOnes)[primeSame], inputCount);
 			output = addToString(output,&outputSize,' ');
 			output = addToString(output,&outputSize,'+');
 			output = addToString(output,&outputSize,' ');
@@ -564,7 +565,7 @@ char * mccluskey(int size, int * imps, int inputCount){
 	}
 	free((void *)ePrimes);
 
-	for(i = 0;i < primeSize; i++){
+	for(i = 0;i < *primeSize; i++){
 		free((void *)grid[i]);
 	}
 	free((void *)grid);
@@ -580,6 +581,17 @@ char * solveTruthTable(int * output, int size){
 	int **inArray=malloc(sizeof(int *) * pow(2,size));
 	char * out;
 	int outputSize = 0;
+
+	void *primeData[3];
+	int **prime;
+	int *primeOnes;
+	int primeSize = 0;
+
+	primeData[0] = &prime;
+	primeData[1] = &primeOnes;
+	primeData[2] = &primeSize;
+
+
 	if (inArray == NULL) exit(1);
 	for(i = 0; i < pow(2,size); i++){
 			inArray[i] = malloc(sizeof(int) * 2);
@@ -646,9 +658,9 @@ char * solveTruthTable(int * output, int size){
 			diff[i] = 0;
 		}
 		
-		findEssentialPrimes(inArray,inArrayOnes,impCount, &diff[0]);
+		findEssentialPrimes(inArray,inArrayOnes,impCount, &diff[0], &prime, &primeOnes, &primeSize);
 		
-		primeSortAndCompare();
+		primeSortAndCompare(&prime, &primeSize);
 		for(i = 0; i < primeSize; i++){
 			for(j = 0; j < 10; j++){
 				if (prime[i][j] ==-1){
@@ -657,7 +669,7 @@ char * solveTruthTable(int * output, int size){
 			}
 		}
 		
-		out = mccluskey(impCount,imps,size);
+		out = mccluskey(impCount,imps,size, &prime, &primeOnes, &primeSize);
 
 		for (i = 0; i < impCount; i++){
 			free(inArray[i]);
@@ -691,6 +703,7 @@ char * solveTruthTable(int * output, int size){
 /*
 	Frees memory used by the prime array.
 */
+/*
 void freePrime(){
 	int i;
 	if(primeSize > 0){
@@ -701,7 +714,7 @@ void freePrime(){
 		free((void *)primeOnes);
 	}
 	primeSize = 0;
-}
+}*/
 
 void parseCSV(){
 	
